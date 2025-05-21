@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Cek Nomor WhatsApp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/flag-icon-css/css/flag-icon.min.css" rel="stylesheet">
+  <style>
+    /* Mencegah teks disalin di seluruh halaman */
+    body, html {
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html {
+      height: 100%; font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1f1c2c, #928dab);
+      color: #fff; overflow: hidden;
+    }
+    .loader {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: #1f1c2c; display: flex; align-items: center; justify-content: center;
+      z-index: 9999; flex-direction: column;
+    }
+    .loader h1 { font-size: 2rem; margin-top: 20px; color: #00ffcc; }
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #00ffcc;
+      border-radius: 50%; width: 60px; height: 60px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    main {
+      display: none; height: 100%; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .container {
+      background: rgba(255,255,255,0.1);
+      padding: 30px; border-radius: 15px;
+      box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+      width: 90%; max-width: 420px; text-align: center;
+    }
+    h1 {
+      font-size: 26px; margin-bottom: 20px; color: #00ffcc;
+    }
+    select, input[type="text"] {
+      width: 100%; padding: 12px; margin-bottom: 15px;
+      border: none; border-radius: 8px; font-size: 16px;
+      /* Agar input tetap bisa disalin (optional), kalau mau cegah hapus ini */
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+    }
+    .button {
+      width: 100%; padding: 15px;
+      background: linear-gradient(90deg, #00ffcc, #0066ff);
+      border: none; border-radius: 10px;
+      font-size: 16px; font-weight: bold; color: #000;
+      cursor: pointer; transition: all 0.3s ease;
+      user-select: none; /* tombol juga tidak bisa disalin */
+    }
+    .button:hover { transform: scale(1.05); }
+    .result { margin-top: 20px; font-size: 16px; min-height: 20px; }
+
+  </style>
+</head>
+<body>
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <h1>Memuat Aplikasi...</h1>
+  </div>
+  <main id="main">
+    <div class="container">
+      <h1>Cek Nomor WhatsApp</h1>
+      <select id="kodeNegara">
+        <option value="">Pilih Negara</option>
+      </select>
+      <input type="text" id="nomor" placeholder="Masukkan nomor tanpa awalan 0"/>
+      <button class="button" onclick="cekNomor()">CEK NOMOR</button>
+      <div id="hasil" class="result"></div>
+    </div>
+  </main>
+  <script>
+    // Cegah zoom via pinch gesture atau ctrl+scroll
+    window.addEventListener('wheel', function(e) {
+      if (e.ctrlKey) e.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    });
+
+    window.addEventListener('gesturechange', function(e) {
+      e.preventDefault();
+    });
+
+    window.addEventListener('gestureend', function(e) {
+      e.preventDefault();
+    });
+
+    window.onload = () => {
+      setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("main").style.display = "flex";
+        loadCountries();
+      }, 1500);
+    };
+
+    async function loadCountries() {
+      const select = document.getElementById('kodeNegara');
+      const countries = [
+        { name: "Indonesia", code: "62" },
+        { name: "USA", code: "1" },
+        { name: "India", code: "91" },
+        { name: "UK", code: "44" },
+        { name: "Japan", code: "81" },
+        { name: "UAE", code: "971" },
+        { name: "Brazil", code: "55" },
+        { name: "Nigeria", code: "234" },
+        { name: "Germany", code: "49" },
+        { name: "Russia", code: "7" },
+        { name: "Malaysia", code: "60" },
+        { name: "Thailand", code: "66" },
+        { name: "Philippines", code: "63" },
+        { name: "Australia", code: "61" },
+        { name: "Turkey", code: "90" },
+        { name: "South Africa", code: "27" },
+        { name: "Mexico", code: "52" },
+        { name: "France", code: "33" },
+        { name: "Italy", code: "39" }
+      ];
+      countries.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.code;
+        option.text = `${c.name} (+${c.code})`;
+        select.appendChild(option);
+      });
+    }
+
+    function cekNomor() {
+      const kode = document.getElementById("kodeNegara").value;
+      const nomor = document.getElementById("nomor").value;
+      const hasil = document.getElementById("hasil");
+
+      if (!nomor.match(/^\d{5,15}$/)) {
+        hasil.innerHTML = "Masukkan nomor yang valid (5-15 digit).";
+        hasil.style.color = "orange";
+        return;
+      }
+
+      hasil.innerHTML = "<em>Memeriksa nomor...</em>";
+      hasil.style.color = "#0ff";
+
+      setTimeout(() => {
+        if (nomor.endsWith("0") || nomor.endsWith("999")) {
+          hasil.innerHTML = `Nomor <strong>+${kode}${nomor}</strong> kemungkinan <span style='color:red'>DIBLOKIR/BANNED</span>.`;
+        } else {
+          hasil.innerHTML = `Nomor <strong>+${kode}${nomor}</strong> <span style='color:lime'>AMAN/AKTIF</span>.`;
+        }
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
